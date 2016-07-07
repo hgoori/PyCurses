@@ -1,22 +1,27 @@
 import curses
 
 class CursesPane:
-    __screen = None
+    __pane = None
     __x = 0
     __y = 0
     __width = 0
     __height = 0
+    __title = ''
 
-    def __init__(self, screen, pos, size):
-        self.__screen = screen
+    def __init__(self, pos, size, title = ''):
         self.__x = pos[0]
         self.__y = pos[1]
         self.__width = size[0]
         self.__height = size[1]
+        self.__title = title
+        self.__pane = curses.newwin(self.__height, self.__width, self.__y, self.__x)
+
+    def close(self):
+        del(self.__pane)
 
     @property
-    def screen(self):
-        return self.__screen
+    def pane(self):
+        return self.__pane
 
     @property
     def x(self):
@@ -34,15 +39,20 @@ class CursesPane:
     def height(self):
         return self.__height
 
+    @property
+    def title(self):
+        return self.__title
+
     def draw(self):
-        self.__draw_outline()
+        self.__draw_border()
+        self.__draw_title()
+        self.pane.refresh()
 
-    def __draw_outline(self):
-        for x in range(self.x, self.x + self.width + 1):
-            self.screen.addstr(self.y, x, '-')
-            self.screen.addstr(self.y + self.height, x, '-')
+    def __draw_border(self):
+        self.pane.box()
 
-        for y in range(self.y, self.y + self.height + 1):
-            self.screen.addstr(y, self.x, '|')
-            self.screen.addstr(y, self.x + self.width, '|')
+    def __draw_title(self):
+        if len(self.title) > 0:
+            dims = self.pane.getmaxyx()
+            self.pane.addstr(0, int(dims[1] / 2) - int(len(self.title) / 2) - int(len(self.title) % 2), self.title)
 

@@ -5,10 +5,8 @@ class CursesWindow:
     __screen = None
     __panes = dict()
 
-    def __init__(self):
+    def __init__(self, screen):
         self.__screen = curses.initscr()
-        curses.start_color()
-        curses.noecho()
         self.__screen.clear()
 
     @property
@@ -20,24 +18,25 @@ class CursesWindow:
         return self.__panes
 
     def size(self):
-        dims = self.__screen.getmaxyx()
+        dims = self.screen.getmaxyx()
         return dims[1], dims[0]
 
-    def close(self):
-        curses.endwin()
+    def add_pane(self, id, pos, size, title = ''):
+        pane = CursesPane(pos, size, title)
+        self.panes[id] = pane
 
-    def add_pane(self, name, pos, size):
-        pane = CursesPane(self.__screen, pos, size)
-        self.__panes[name] = pane
-
-    def remove_pane(self, name):
-        del(self.panes[name])
+    def remove_pane(self, id):
+        pane = self.panes[id]
+        if pane is not None:
+            pane.close()
+            del(self.panes[id])
 
     def draw(self):
+        self.screen.clear()
+        self.screen.refresh()
+
         for pane in self.panes.values():
             pane.draw()
-
-        self.screen.refresh()
 
     def getch(self):
         return self.screen.getch()
